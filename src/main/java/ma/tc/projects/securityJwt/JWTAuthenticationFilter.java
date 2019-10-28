@@ -1,10 +1,15 @@
 package ma.tc.projects.securityJwt;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import ma.tc.projects.entity.AppUser;
-import ma.tc.projects.repository.AppUserRepository;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,14 +17,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ma.tc.projects.entity.AppUser;
+import ma.tc.projects.repository.AppUserRepository;
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private AuthenticationManager authenticationManager;
@@ -54,19 +58,20 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         User user=(User)authResult.getPrincipal();
         AppUser u=userRepository.findByUsername(user.getUsername()).get();
         List<String> roles=new ArrayList<>();
+        
         user.getAuthorities().forEach(r->{
             roles.add(r.getAuthority());
         });
-
 
         String jwt = JWT.create()
                 .withIssuer(request.getRequestURI())
                 .withSubject(user.getUsername())
                 .withArrayClaim("roles",roles.toArray(new String[roles.size()] ))
-                 .withClaim("magasinNale",u.getMagasin().getNom())
+                 .withClaim("magasinName",u.getMagasin().getNom())
                  .withClaim("magasinId",u.getMagasin().getIdMagasin())
                 .withExpiresAt(new Date(System.currentTimeMillis()+SecurityParams.EXPIRATION))
                 .sign(Algorithm.HMAC256(SecurityParams.PRIVATE_KEY));
+        
         response.addHeader(SecurityParams.JWT_HEADER,SecurityParams.HEADER_PREFIX+jwt);
 
     }

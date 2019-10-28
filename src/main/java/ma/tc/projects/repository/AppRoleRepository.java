@@ -12,5 +12,6 @@ public interface AppRoleRepository extends JpaRepository<AppRole,Long> {
 
 
     public AppRole findByRoleName(String roleName);
+    public boolean existsByRoleName(String roleName);
 
 }

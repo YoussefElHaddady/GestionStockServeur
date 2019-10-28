@@ -42,7 +42,13 @@ public class AppUser extends Personne  {
     public void setMagasin(Magasin magasin) {
         this.magasin = magasin;
     }
-    public AppUser(long idUser, String username, String password) {
+    
+    
+    public AppUser() {
+		super();
+	}
+
+	public AppUser(long idUser, String username, String password) {
         super();
         this.id = idUser;
         this.username = username;
@@ -69,4 +75,37 @@ public class AppUser extends Personne  {
         this.username = username;
         this.password = password;
     }
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public boolean isActived() {
+		return actived;
+	}
+
+	public void setActived(boolean actived) {
+		this.actived = actived;
+	}
+
+	public Collection<AppRole> getRoles() {
+		return roles;
+	}
+
+	public void setRoles(Collection<AppRole> roles) {
+		this.roles = roles;
+	}
+
 }

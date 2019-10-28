@@ -14,73 +14,76 @@ import java.util.List;
 @Service
 @Transactional
 public class AcountServiceImpl implements AccountService {
-    private AppUserRepository appUserRepository;
-    private AppRoleRepository appRoleRepository;
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
-    public AcountServiceImpl(AppUserRepository appUserRepository, AppRoleRepository appRoleRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
-        this.appUserRepository = appUserRepository;
-        this.appRoleRepository = appRoleRepository;
-        this.bCryptPasswordEncoder = bCryptPasswordEncoder;
-    }
+	private AppUserRepository appUserRepository;
+	private AppRoleRepository appRoleRepository;
+	private BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    @Override
-    public AppUser saveUser(String username, String password, String confirmedPasssword) {
+	public AcountServiceImpl(AppUserRepository appUserRepository, AppRoleRepository appRoleRepository,
+			BCryptPasswordEncoder bCryptPasswordEncoder) {
+		this.appUserRepository = appUserRepository;
+		this.appRoleRepository = appRoleRepository;
+		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+	}
 
-    if(appUserRepository.findByUsername(username).isPresent()==true) throw new RuntimeException("User already exisit");
-    if(!password.equals(confirmedPasssword)) throw new RuntimeException("Your password of confirrmation is incorrect");
+	@Override
+	public AppUser saveUser(String username, String password, String confirmedPasssword) {
 
-    AppUser appUser=new AppUser();
-    appUser.setUsername(username);
-    appUser.setPassword(bCryptPasswordEncoder.encode(password));
-    appUser.setActived(true);
-    appUserRepository.save(appUser);
-    addRoleToUser(username,"USER");
-    return appUser;
-    }
+		if (appUserRepository.findByUsername(username).isPresent() == true)
+			throw new RuntimeException("User already exisit");
+		if (!password.equals(confirmedPasssword))
+			throw new RuntimeException("Your password of confirrmation is incorrect");
 
-    @Override
-    public AppRole save(AppRole role) {
-        return appRoleRepository.save(role);
-    }
+		AppUser appUser = new AppUser();
+		appUser.setUsername(username);
+		appUser.setPassword(bCryptPasswordEncoder.encode(password));
+		appUser.setActived(true);
+		appUserRepository.save(appUser);
+		addRoleToUser(username, "USER");
+		return appUser;
+	}
 
-    @Override
-    public AppUser loadUserByUsername(String username) {
-        return appUserRepository.findByUsername(username).get();
-    }
+	@Override
+	public AppRole saveAppRole(AppRole role) {
+		return appRoleRepository.save(role);
+	}
 
-    @Override
-    public void addRoleToUser(String username, String rolename) {
-        appUserRepository.findByUsername(username).get().getRoles().add(appRoleRepository.findByRoleName(rolename));
-    }
+	@Override
+	public AppUser loadUserByUsername(String username) {
+		return appUserRepository.findByUsername(username).get();
+	}
 
+	@Override
+	public void addRoleToUser(String username, String rolename) {
+		appUserRepository.findByUsername(username).get().getRoles().add(appRoleRepository.findByRoleName(rolename));
+	}
 
-    @Override
-    public List<AppUser> getUsers() {
-        List<AppUser> users=new ArrayList<>();
+	@Override
+	public List<AppUser> getUsers() {
+		List<AppUser> users = new ArrayList<>();
 
-        for (AppUser appUser : this.appUserRepository.findAll()) {
-                appUser.getRoles().forEach(r->{
-                    if(r.getRoleName().equals("USER") && appUser.getRoles().size()==1)
-                        users.add(appUser);
+		for (AppUser appUser : this.appUserRepository.findAll()) {
+			appUser.getRoles().forEach(r -> {
+				if (r.getRoleName().equals("USER") && appUser.getRoles().size() == 1)
+					users.add(appUser);
 
-                });
-        }
-        return users;
-    }
+			});
+		}
+		return users;
+	}
 
-    @Override
-    public AppUser BloquerUser(String username) {
+	@Override
+	public AppUser BloquerUser(String username) {
 
-             AppUser u=appUserRepository.findByUsername(username).get();
-             u.setActived(false);
-             return appUserRepository.save(u);
-    }
+		AppUser u = appUserRepository.findByUsername(username).get();
+		u.setActived(false);
+		return appUserRepository.save(u);
+	}
 
-    @Override
-    public AppUser DebloquerUser(String username) {
+	@Override
+	public AppUser DebloquerUser(String username) {
 
-        AppUser u=appUserRepository.findByUsername(username).get();
-        u.setActived(true);
-        return appUserRepository.save(u);
-    }
+		AppUser u = appUserRepository.findByUsername(username).get();
+		u.setActived(true);
+		return appUserRepository.save(u);
+	}
 }

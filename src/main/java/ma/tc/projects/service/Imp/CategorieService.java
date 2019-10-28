@@ -58,7 +58,9 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 	}
 
 	public List<Categorie> getAllByMagasin(long idMagasin) {
-		List<Categorie> categories = categorieRepo.findByMagasin(idMagasin);
+		Categorie notCat = categorieRepo.findByLabel("غير مصنف").get();
+		
+		List<Categorie> categories = categorieRepo.findByMagasin(idMagasin, notCat.getIdCategorie());
 
 		categories.forEach(categorie -> {
 			List<Produit> prods = produitService.getAllByMagasinCategorie(idMagasin, categorie.getIdCategorie());
@@ -66,7 +68,8 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 
 			List<Long> ids = new ArrayList<>();
 			prods.forEach(prod -> ids.add(prod.getIdProduit()));
-			categorie.setQuantites(mouvementDeStockService.getQuantiteByMagProdsIds(idMagasin, ids));
+			if (ids.size() != 0)
+				categorie.setQuantites(mouvementDeStockService.getQuantiteByMagProdsIds(idMagasin, ids));
 		});
 
 		return categories;

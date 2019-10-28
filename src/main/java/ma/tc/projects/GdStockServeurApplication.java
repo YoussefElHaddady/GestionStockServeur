@@ -1,19 +1,29 @@
 package ma.tc.projects;
 
-import ma.tc.projects.entity.*;
-import ma.tc.projects.repository.*;
-import ma.tc.projects.service.AccountService;
-import org.springframework.boot.CommandLineRunner;
+import java.util.stream.Stream;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.util.stream.Stream;
+import ma.tc.projects.entity.AppRole;
+import ma.tc.projects.entity.AppUser;
+import ma.tc.projects.entity.Categorie;
+import ma.tc.projects.entity.Client;
+import ma.tc.projects.entity.Fournisseur;
+import ma.tc.projects.entity.Magasin;
+import ma.tc.projects.enums.TypeClientEnum;
+import ma.tc.projects.repository.AppRoleRepository;
+import ma.tc.projects.repository.AppUserRepository;
+import ma.tc.projects.repository.CategorieRepository;
+import ma.tc.projects.repository.ClientRepository;
+import ma.tc.projects.repository.FournisseurRepository;
+import ma.tc.projects.repository.MagasinRepository;
+import ma.tc.projects.service.AccountService;
 
 
 @SpringBootApplication
@@ -22,31 +32,40 @@ public class GdStockServeurApplication extends SpringBootServletInitializer{
 
 	public static void main(String[] args) {
 		ConfigurableApplicationContext ctx = SpringApplication.run(GdStockServeurApplication.class, args);
-		setFirstLaunchData(ctx);
 
 		AccountService accountService = ctx.getBean(AccountService.class);
 		MagasinRepository magasinRepository = ctx.getBean(MagasinRepository.class);
 		AppUserRepository userRepository = ctx.getBean(AppUserRepository.class);
 		AppRoleRepository appRoleRepository = ctx.getBean(AppRoleRepository.class);
 
-		accountService.save(new AppRole(null,"USER"));
-            accountService.save(new AppRole(null,"ADMIN"));
-          	Stream.of("user11110","user22220","user333330").forEach(e->{
-                accountService.saveUser(e,"12345678","12345678");
-            });
-           
-         	accountService.addRoleToUser("user11110","ADMIN");
 
-			if (!magasinRepository.existsByUser(userRepository.findByUsername("user11110").get())) {
-					Magasin magasin = new Magasin("admin mag", null, 0, 0);
+		Stream.of("ADMIN", "USER").forEach(e->{
+			if(!appRoleRepository.existsByRoleName(e))
+				accountService.saveAppRole(new AppRole(null, e));
+		});
+        
+      	Stream.of("admin","user1","user2").forEach(e->{
+      		if(!userRepository.existsByUsername(e))
+      			accountService.saveUser(e, e+e, e+e);
+        });
+       
+     	accountService.addRoleToUser("admin","ADMIN");
+     	accountService.addRoleToUser("user1","USER");
+     	accountService.addRoleToUser("user2","USER");
 
+     	Stream.of("admin","user1","user2").forEach(e->{
+			if ( !magasinRepository.existsByUser(userRepository.findByUsername(e).get())) {
+					Magasin magasin = new Magasin(e + " mag", null, 0, 0);
+	
 					AppUser user=new AppUser();
-					user=userRepository.findByUsername("user11110").get();
+					user = userRepository.findByUsername(e).get();
 					System.err.println(user.toString());
 					magasin.setUser(user);
 					magasinRepository.save(magasin);
 			}
+     	});
 
+     	setFirstLaunchData(ctx);
 	}
 	/*@Bean
 	CommandLineRunner start(AccountService accountService, MagasinRepository magasinRepository, AppUserRepository userRepository,AppRoleRepository appRoleRepository){
@@ -79,15 +98,15 @@ public class GdStockServeurApplication extends SpringBootServletInitializer{
 		CategorieRepository categoryRepository = ctx.getBean(CategorieRepository.class);
 		//RoleRepository roleRepo = ctx.getBean(RoleRepository.class);
 		//UserRepository userRepo = ctx.getBean(UserRepository.class);
-		MagasinRepository magasinRepo = ctx.getBean(MagasinRepository.class);
+//		MagasinRepository magasinRepo = ctx.getBean(MagasinRepository.class);
 		ClientRepository clientRepo = ctx.getBean(ClientRepository.class);
 		FournisseurRepository fournisseurRepo = ctx.getBean(FournisseurRepository.class);
 
 		// Insert unknown category for the first running
-	/*	if (!categoryRepository.existsByLabel("غير مصنف"))
+		if (!categoryRepository.existsByLabel("غير مصنف"))
 			categoryRepository.save(new Categorie("غير مصنف", null));
 
-		// Insert all roles
+		/*// Insert all roles
 		if (!roleRepo.existsByName(RoleEnum.ROLE_ADMIN))
 			roleRepo.save(new Role(RoleEnum.ROLE_ADMIN));
 
@@ -124,7 +143,7 @@ public class GdStockServeurApplication extends SpringBootServletInitializer{
 				magasin.setUser(user);
 				magasinRepo.save(magasin);
 			}
-		}
+		}*/
 
 		// Insert unknown client
 		if (!clientRepo.existsByName("غير معروف"))
@@ -133,7 +152,7 @@ public class GdStockServeurApplication extends SpringBootServletInitializer{
 		// Insert unknown provider (fournisseur)
 		if (!fournisseurRepo.existsByName("غير معروف"))
 			fournisseurRepo.save(new Fournisseur(null, "غير معروف", 0, null, null, null, null, null));
-		*/
+		
 	}
 
 	@Bean
