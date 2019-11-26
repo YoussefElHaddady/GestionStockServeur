@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import ma.tc.projects.entity.Categorie;
 import ma.tc.projects.entity.MouvementDeStock;
+import ma.tc.projects.entity.Produit;
 import ma.tc.projects.repository.CategorieRepository;
 import ma.tc.projects.repository.MouvementDeStockRepository;
 import ma.tc.projects.service.ICrudService;
@@ -75,6 +76,17 @@ public class MouvementDeStockService implements ICrudService<MouvementDeStock, L
 		long id_cat = categorieRepo.findFirstCategori();
 
 		return getQuantiteByMagProd(id_magasin, id_cat);
+	}
+
+	public boolean deleteByProduit(Produit produit) {
+		if (produit == null)
+			return false;
+		
+		if (mouvementDeStockRepo.existsByProduit(produit) == false)
+			return false;
+
+		mouvementDeStockRepo.deleteByProdId(produit.getIdProduit());
+		return true;
 	}
 
 }

@@ -25,6 +25,10 @@ public class Client extends Personne {
 	@Enumerated(EnumType.STRING)
 	@NonNull
 	private TypeClientEnum type;
+	
+//	credit positif : la somme d'argent que le magasin doit payer à la personne (client)
+//	credit negatif (prêt) : La somme d’argent que la personne (client) doit payer au magasin
+	private double credit;
 
 	public Client() {
 
@@ -36,11 +40,26 @@ public class Client extends Personne {
 		this.type = type;
 	}
 
+	public Client(String raison_sociale, TypeClientEnum type, double credit) {
+		super();
+		this.raison_sociale = raison_sociale;
+		this.type = type;
+		this.credit = credit;
+	}
+
 	public Client(String CIN, String name, int RIP, String phone, String adresse, String email, String picture,
 			String raison_sociale, TypeClientEnum type) {
 		super(CIN, name, RIP, phone, adresse, email, picture);
 		this.raison_sociale = raison_sociale;
 		this.type = type;
+	}
+
+	public Client(String CIN, String name, int RIP, String phone, String adresse, String email, String picture,
+			String raison_sociale, TypeClientEnum type, double credit) {
+		super(CIN, name, RIP, phone, adresse, email, picture);
+		this.raison_sociale = raison_sociale;
+		this.type = type;
+		this.credit = credit;
 	}
 
 	public long getIdClient() {
@@ -67,4 +86,11 @@ public class Client extends Personne {
 		this.type = type;
 	}
 
+	public double getCredit() {
+		return credit;
+	}
+
+	public void setCredit(double credit) {
+		this.credit = credit;
+	}
 }

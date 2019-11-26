@@ -39,21 +39,19 @@ public class GdStockServeurApplication extends SpringBootServletInitializer{
 		AppRoleRepository appRoleRepository = ctx.getBean(AppRoleRepository.class);
 
 
-		Stream.of("ADMIN", "USER").forEach(e->{
-			if(!appRoleRepository.existsByRoleName(e))
-				accountService.saveAppRole(new AppRole(null, e));
-		});
         
-      	Stream.of("admin","user1","user2").forEach(e->{
-      		if(!userRepository.existsByUsername(e))
+      	Stream.of("admin","user").forEach(e->{
+      		// adding the default roles
+      		if(!appRoleRepository.existsByRoleName(e.toUpperCase()))
+      			accountService.saveAppRole(new AppRole(null, e.toUpperCase()));
+      		
+      		// adding the default users and assigning there roles
+      		if(!userRepository.existsByUsername(e)) {
       			accountService.saveUser(e, e+e, e+e);
-        });
-       
-     	accountService.addRoleToUser("admin","ADMIN");
-     	accountService.addRoleToUser("user1","USER");
-     	accountService.addRoleToUser("user2","USER");
+	      		accountService.addRoleToUser("admin", e.toUpperCase());
+			}
 
-     	Stream.of("admin","user1","user2").forEach(e->{
+      		// adding the default magasins to the users
 			if ( !magasinRepository.existsByUser(userRepository.findByUsername(e).get())) {
 					Magasin magasin = new Magasin(e + " mag", null, 0, 0);
 	

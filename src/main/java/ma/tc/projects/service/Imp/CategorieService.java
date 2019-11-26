@@ -42,9 +42,7 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 
 	@Override
 	public void delete(Long id_categorie) {
-		Categorie a = new Categorie();
-		a.setIdCategorie(id_categorie);
-		categorieRepo.delete(a);
+		throw new RuntimeException("not implemented method Categorie.delete");
 	}
 
 	@Override
@@ -54,12 +52,21 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Categorie> iterable) {
-		categorieRepo.deleteAll(iterable);
+//		categorieRepo.deleteAll(iterable);
+		iterable.forEach(item -> this.deleteControlled(item.getIdCategorie(), "any"));
+	}
+	
+	public boolean exists(String label) {
+		return categorieRepo.existsByLabel(label);
+	}
+	
+	public Categorie findByLabel(String label) {
+		return categorieRepo.findByLabel(label).orElse(null);
 	}
 
 	public List<Categorie> getAllByMagasin(long idMagasin) {
 		Categorie notCat = categorieRepo.findByLabel("غير مصنف").get();
-		
+
 		List<Categorie> categories = categorieRepo.findByMagasin(idMagasin, notCat.getIdCategorie());
 
 		categories.forEach(categorie -> {
@@ -73,6 +80,58 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 		});
 
 		return categories;
+	}
+
+	public boolean deleteControlled(long id_categorie, String decision) {
+		Categorie cat = categorieRepo.findById(id_categorie).orElse(null);
+
+		if (cat == null)
+			return false;
+		if ("غير مصنف".equals(cat.getLabel()))
+			return false;
+
+		if (cat.getProduits() != null || cat.getProduits().size() >= 0) {
+			switch (decision.toLowerCase()) {
+			case "delete":
+				produitService.deleteAll(cat.getProduits());
+				break;
+
+			case "move":
+				moveProdsToNC(cat);
+				break;
+
+			default:
+				return false;
+			}
+		}
+
+		categorieRepo.delete(cat);
+		return true;
+	}
+
+	public boolean moveProdsToNC(Categorie categorie) {
+		Categorie notCat = categorieRepo.findByLabel("غير مصنف").orElse(null);
+
+		if (categorie == null || notCat == null)
+			return false;
+
+		if (categorie.getProduits() == null)
+			return false;
+
+		categorie.getProduits().forEach(produit -> {
+			produit.setCategorie(notCat);
+			produitService.update(produit);
+		});
+
+		return true;
+	}
+
+	public boolean deleteAllProducts(Categorie categorie) {
+		if (categorie == null || categorie.getProduits() == null)
+			return false;
+
+		produitService.deleteAll(categorie.getProduits());
+		return true;
 	}
 
 }

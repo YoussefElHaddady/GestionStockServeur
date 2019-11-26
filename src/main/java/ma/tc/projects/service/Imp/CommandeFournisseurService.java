@@ -9,13 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import ma.tc.projects.entity.Categorie;
 import ma.tc.projects.entity.CommandeFournisseur;
+import ma.tc.projects.entity.Fournisseur;
 import ma.tc.projects.entity.LigneCmdFournisseur;
 import ma.tc.projects.entity.Magasin;
 import ma.tc.projects.entity.MouvementDeStock;
+import ma.tc.projects.entity.Produit;
 import ma.tc.projects.entity.ReglementFournisseur;
 import ma.tc.projects.enums.TypeDeMvmt;
 import ma.tc.projects.message.request.CommandeFournisseurAddingRequest;
+import ma.tc.projects.message.response.MonthlyCount;
 import ma.tc.projects.repository.CommandeFournisseurRepository;
 import ma.tc.projects.service.ICrudService;
 
@@ -66,9 +70,10 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 	@Override
 	public void delete(Long id_commandeFournisseur) {
-		CommandeFournisseur a = new CommandeFournisseur();
-		a.setIdCmdFournisseur(id_commandeFournisseur);
-		commandeFournisseurRepo.delete(a);
+//		CommandeFournisseur a = new CommandeFournisseur();
+//		a.setIdCmdFournisseur(id_commandeFournisseur);
+//		commandeFournisseurRepo.delete(a);
+		throw new RuntimeException("not implemented method CommandeFournisseurService.delete");
 	}
 
 	@Override
@@ -78,7 +83,8 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 	@Override
 	public void deleteAll(Iterable<CommandeFournisseur> iterable) {
-		commandeFournisseurRepo.deleteAll(iterable);
+//		commandeFournisseurRepo.deleteAll(iterable);
+		iterable.forEach(item -> this.deleteControlled(item.getIdCmdFournisseur()));
 	}
 
 	public void addCommande(CommandeFournisseurAddingRequest commandeReq) {
@@ -107,20 +113,24 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 		commandeReq.getLignesCmdFournisseur().forEach(ligne -> {
 			ligne.setCommandeFournisseur(cmd);
+			Produit prodLigne = ligne.getProduit();
+			Categorie catProd = prodLigne.getCategorie();
 
 			// Insert Produit if not exist in database
-			if (ligne.getProduit().getIdProduit() <= 0) {
+			if (prodLigne.getIdProduit() <= 0) {
 
 				// Insert Categorie if not exist in database
-				if (ligne.getProduit().getCategorie().getIdCategorie() <= 0) {
-					categorieService.add(ligne.getProduit().getCategorie());
+				if (catProd.getIdCategorie() <= 0) {
+						if(categorieService.exists(catProd.getLabel()))
+							prodLigne.setCategorie(categorieService.findByLabel(catProd.getLabel()));
+						else
+							categorieService.add(catProd);
 				}
 
-				produitService.add(ligne.getProduit());
-				mouvementDeStockService
-						.add(new MouvementDeStock(ligne.getProduit(), magasin, TypeDeMvmt.DEPOT, 0, new Date()));
+				produitService.add(prodLigne);
+				mouvementDeStockService.add(new MouvementDeStock(prodLigne, magasin, TypeDeMvmt.DEPOT, 0, new Date()));
 			}
-			ids.add(ligne.getProduit().getIdProduit());
+			ids.add(prodLigne.getIdProduit());
 			lignesCmd.add(ligne);
 		});
 		ligneCmdFournisseurService.saveAll(lignesCmd);
@@ -138,4 +148,28 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 		System.out.println("query result : CommandeFournisseur inserted");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");
 	}
+
+	public List<MonthlyCount> getCount() {
+		return commandeFournisseurRepo.commandeFournisseurCountPerMonth();
+	}
+
+	public boolean deleteControlled(long idCommandeFournisseur) {
+		CommandeFournisseur commandeFournisseur = commandeFournisseurRepo.findById(idCommandeFournisseur).orElse(null);
+
+		if (commandeFournisseur == null)
+			return false;
+
+		if (commandeFournisseur.getReglements() == null)
+			reglementService.deleteAll(commandeFournisseur.getReglements());
+
+		ligneCmdFournisseurService.deleteByCommandeFournisseur(commandeFournisseur);
+		commandeFournisseurRepo.delete(commandeFournisseur);
+
+		return true;
+	}
+
+	public List<CommandeFournisseur> getByFournisseur(Fournisseur fournisseur) {
+		return commandeFournisseurRepo.findByFournisseur(fournisseur).orElse(null);
+	}
+
 }

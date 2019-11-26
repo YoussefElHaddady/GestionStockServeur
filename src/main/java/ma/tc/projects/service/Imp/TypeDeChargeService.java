@@ -17,6 +17,9 @@ public class TypeDeChargeService implements ICrudService<TypeDeCharge, Long> {
 	
 	@Autowired
 	private TypeDeChargeRepository typeDeChargeRepo;
+	
+	@Autowired
+	private ChargeService chargeService;
 
 	@Override
 	public List<TypeDeCharge> getAll() {
@@ -35,9 +38,7 @@ public class TypeDeChargeService implements ICrudService<TypeDeCharge, Long> {
 
 	@Override
 	public void delete(Long id_typeDeCharge) {
-		TypeDeCharge a = new TypeDeCharge();
-		a.setIdTypeCharge(id_typeDeCharge);
-		typeDeChargeRepo.delete(a);
+		
 	}
 
 	@Override
@@ -48,6 +49,18 @@ public class TypeDeChargeService implements ICrudService<TypeDeCharge, Long> {
 	@Override
 	public void deleteAll(Iterable<TypeDeCharge> iterable) {
 		typeDeChargeRepo.deleteAll(iterable);
+	}
+	
+	public boolean deleteControlled(Long id_typeDeCharge) {
+		TypeDeCharge type = typeDeChargeRepo.findById(id_typeDeCharge).orElse(null);
+		
+		if(type == null)
+			return false;
+		
+		chargeService.deleteByTypeDeCharge(type);
+		typeDeChargeRepo.delete(type);
+		
+		return true;
 	}
 
 }

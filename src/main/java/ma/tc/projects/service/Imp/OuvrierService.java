@@ -59,7 +59,7 @@ public class OuvrierService implements ICrudService<Ouvrier, Long> {
 		Ouvrier ouvrier = ouvrierRepo.findById(id_ouvrier)
 				.orElseThrow(() -> new RuntimeException("Fail! -> Cause: Ouvrier not find."));
 
-		absenceService.deleteAbsences(ouvrier.getIdOuvrier());
+		absenceService.deleteByOuvrier(ouvrier.getIdOuvrier());
 		
 		ouvrierRepo.delete(ouvrier);
 	}

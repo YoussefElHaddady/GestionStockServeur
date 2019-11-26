@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import ma.tc.projects.entity.Client;
+import ma.tc.projects.entity.CommandeClient;
 import ma.tc.projects.repository.ClientRepository;
 import ma.tc.projects.service.ICrudService;
 
@@ -17,6 +18,9 @@ public class ClientService implements ICrudService<Client, Long> {
 	
 	@Autowired
 	private ClientRepository clientRepo;
+	
+	@Autowired
+	private CommandeClientService commandeClientService;
 
 	@Override
 	public List<Client> getAll() {
@@ -35,9 +39,10 @@ public class ClientService implements ICrudService<Client, Long> {
 
 	@Override
 	public void delete(Long id_client) {
-		Client a = new Client();
-		a.setIdClient(id_client);
-		clientRepo.delete(a);
+//		Client a = new Client();
+//		a.setIdClient(id_client);
+//		clientRepo.delete(a);
+		throw new RuntimeException("not implemented method Client.delete");
 	}
 
 	@Override
@@ -47,10 +52,62 @@ public class ClientService implements ICrudService<Client, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Client> iterable) {
-		clientRepo.deleteAll(iterable);
+//		clientRepo.deleteAll(iterable);
+		iterable.forEach(item -> deleteControlled(item.getIdClient(), "any"));
 	}
 
 	public int getCount() {
 		return clientRepo.clientsCount();
+	}
+	
+	public boolean deleteControlled(long id_client, String decision) {
+		Client client = clientRepo.findById(id_client).orElse(null);
+
+		if (client == null)
+			return false;
+		
+		if ("غير معروف".equals(client.getName()))
+			return false;
+
+		List<CommandeClient> cmdsClient = commandeClientService.getByClient(client);
+		if (cmdsClient != null) {
+			switch (decision.toLowerCase()) {
+			case "delete":
+				deleteAllCmds(cmdsClient);
+				break;
+
+			case "move":
+				moveCmdsToUnknown(cmdsClient);
+				break;
+
+			default:
+				return false;
+			}
+		}
+
+		clientRepo.delete(client);
+		return true;
+	}
+	
+	public boolean moveCmdsToUnknown(List<CommandeClient> cmds) {
+		Client unknown = clientRepo.findByName("غير معروف").orElse(null);
+
+		if (cmds == null || unknown == null)
+			return false;
+
+		cmds.forEach(cmd -> {
+			cmd.setClient(unknown);
+			commandeClientService.update(cmd);
+		});
+
+		return true;
+	}
+
+	public boolean deleteAllCmds(List<CommandeClient> cmds) {
+		if (cmds == null)
+			return false;
+
+		commandeClientService.deleteAll(cmds);
+		return true;
 	}
 }

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import ma.tc.projects.entity.Client;
 import ma.tc.projects.entity.CommandeClient;
 import ma.tc.projects.entity.LigneCmdClient;
 import ma.tc.projects.entity.Magasin;
@@ -61,9 +62,7 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 	@Override
 	public void delete(Long id_commandeClient) {
-		CommandeClient a = new CommandeClient();
-		a.setIdCommandeClient(id_commandeClient);
-		commandeClientRepo.delete(a);
+		throw new RuntimeException("not implemented method CommandeClientService.delete");
 	}
 
 	@Override
@@ -73,7 +72,8 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 	@Override
 	public void deleteAll(Iterable<CommandeClient> iterable) {
-		commandeClientRepo.deleteAll(iterable);
+//		commandeClientRepo.deleteAll(iterable);
+		iterable.forEach(item -> this.deleteControlled(item.getIdCommandeClient()));
 	}
 
 	public void addCommande(CommandeClientAddingRequest commandeReq) {
@@ -127,5 +127,24 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 	public List<MonthlyCount> getCount() {
 		return commandeClientRepo.commandeClientCountPerMonth();
+	}
+
+	public boolean deleteControlled(long idCommandeClient) {
+		CommandeClient commandeClient = commandeClientRepo.findById(idCommandeClient).orElse(null);
+
+		if (commandeClient == null)
+			return false;
+
+		if (commandeClient.getReglements() != null)
+			reglementService.deleteAll(commandeClient.getReglements());
+
+		ligneCmdClientService.deleteByCommandeClient(commandeClient);
+		commandeClientRepo.delete(commandeClient);
+
+		return true;
+	}
+
+	public List<CommandeClient> getByClient(Client client) {
+		return commandeClientRepo.findByClient(client).orElse(null);
 	}
 }

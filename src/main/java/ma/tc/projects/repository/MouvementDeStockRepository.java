@@ -1,13 +1,17 @@
 package ma.tc.projects.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import ma.tc.projects.entity.MouvementDeStock;
+import ma.tc.projects.entity.Produit;
 
 @Repository
 public interface MouvementDeStockRepository extends JpaRepository<MouvementDeStock, Long> {
@@ -18,4 +22,11 @@ public interface MouvementDeStockRepository extends JpaRepository<MouvementDeSto
 	@Query(value = "SELECT quantite FROM mouvement_de_stock ms WHERE id_mvmt_stk = (SELECT MAX(id_mvmt_stk) FROM mouvement_de_stock ms2 WHERE ms2.id_produit = ms.id_produit AND ms2.id_magasin = :magasinId AND ms2.id_produit IN :produitsIds) ORDER BY ms.id_produit", nativeQuery = true)
 	public List<Integer> findQuantiteByMagProd(@Param("magasinId") long magasinId,
 			@Param("produitsIds") List<Long> produitsIds);
+	
+	public boolean existsByProduit(Produit produit);
+	
+	@Transactional
+	@Modifying
+	@Query(value = "DELETE FROM mouvement_de_stock WHERE id_produit = :idProduit", nativeQuery = true)
+	public void deleteByProdId(@Param("idProduit") long idProduit);
 }

@@ -19,7 +19,16 @@ public class ProduitService implements ICrudService<Produit, Long> {
 
 	@Autowired
 	private ProduitRepository produitRepo;
-	
+
+	@Autowired
+	private LigneCmdClientService ligneCmdClientService;
+
+	@Autowired
+	private LigneCmdFournisseurService ligneCmdFournisseurService;
+
+	@Autowired
+	private MouvementDeStockService mouvementDeStockService;
+
 	@Autowired
 	private MagasinService magasinService;
 
@@ -34,7 +43,7 @@ public class ProduitService implements ICrudService<Produit, Long> {
 
 		if (produit.getCodeProduit() == null)
 			produit.setCodeProduit("prod" + generatedLong);
-		
+
 		produitRepo.save(produit);
 	}
 
@@ -45,9 +54,7 @@ public class ProduitService implements ICrudService<Produit, Long> {
 
 	@Override
 	public void delete(Long id_produit) {
-		Produit a = new Produit();
-		a.setIdProduit(id_produit);
-		produitRepo.delete(a);
+		throw new RuntimeException("not implemented method Produit.delete");
 	}
 
 	@Override
@@ -57,7 +64,9 @@ public class ProduitService implements ICrudService<Produit, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Produit> iterable) {
-		produitRepo.deleteAll(iterable);
+		//produitRepo.deleteAll(iterable);
+		
+		iterable.forEach(item -> this.deleteControlled(item.getIdProduit(), "any"));
 	}
 
 	public Produit getByLibelle(String libelle) {
@@ -75,11 +84,28 @@ public class ProduitService implements ICrudService<Produit, Long> {
 	public List<ProductCount> getCount() {
 		List<List<Integer>> results = produitRepo.produitsCount();
 		List<ProductCount> productCounts = new ArrayList<>();
-		
+
 		results.forEach(rslt -> {
 			productCounts.add(new ProductCount(magasinService.getById(rslt.get(0)), rslt.get(1)));
 		});
-		
+
 		return productCounts;
+	}
+
+	public boolean deleteControlled(long idProduit, String decision) {
+//		if (produitRepo.findById(idProduit).isPresent() == false)
+//			return false;
+
+		Produit prod = produitRepo.findById(idProduit).orElse(null);
+		
+		if(prod == null)
+			return false;
+		
+		ligneCmdClientService.deleteByProduit(prod);
+		ligneCmdFournisseurService.deleteByProduit(prod);
+		mouvementDeStockService.deleteByProduit(prod);
+		produitRepo.delete(prod);
+
+		return true;
 	}
 }

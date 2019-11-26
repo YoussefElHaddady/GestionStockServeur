@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
 import ma.tc.projects.entity.Charge;
+import ma.tc.projects.entity.TypeDeCharge;
 import ma.tc.projects.repository.ChargeRepository;
 import ma.tc.projects.repository.TypeDeChargeRepository;
 import ma.tc.projects.service.ICrudService;
@@ -63,6 +64,17 @@ public class ChargeService implements ICrudService<Charge, Long> {
 	@Override
 	public void deleteAll(Iterable<Charge> iterable) {
 		chargeRepo.deleteAll(iterable);
+	}
+	
+	public boolean deleteByTypeDeCharge(TypeDeCharge typeDeCharge) {
+		if(typeDeCharge == null)
+			return false;
+		
+		if(chargeRepo.existsByTypeDeCharge(typeDeCharge) == false)
+			return false;
+		
+		chargeRepo.deleteByTypeDeCharge(typeDeCharge.getIdTypeCharge());
+		return true;
 	}
 
 }

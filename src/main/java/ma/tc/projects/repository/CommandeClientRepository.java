@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import ma.tc.projects.entity.Client;
 import ma.tc.projects.entity.CommandeClient;
 import ma.tc.projects.message.response.MonthlyCount;
 
@@ -14,6 +15,7 @@ import ma.tc.projects.message.response.MonthlyCount;
 public interface CommandeClientRepository extends JpaRepository<CommandeClient, Long>{
 
 	public Optional<CommandeClient> findByCodeCmd(String codeCmd);
+	public Optional<List<CommandeClient>> findByClient(Client client);
 
 	@Query(value = "SELECT YEAR(date_cmd) as year, MONTH(date_cmd) as month, count(id_commande_client) as count "
 			+ "FROM commande_client "
