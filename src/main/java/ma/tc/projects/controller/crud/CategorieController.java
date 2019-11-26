@@ -26,7 +26,6 @@ public class CategorieController extends CrudController<Categorie, Long> {
 
 	@Autowired
 	CategorieService categorieService;
-	
 
 	@DeleteMapping("/{id}/{decision}")
 	public ResponseEntity<?> delete(@PathVariable long id, @PathVariable String decision) {
@@ -40,7 +39,8 @@ public class CategorieController extends CrudController<Categorie, Long> {
 	@PostMapping("/by_mag")
 	public List<Categorie> getAllByMagasin(@RequestBody Magasin magasin) {
 
-		return categorieService.getAllByMagasin(magasin.getIdMagasin());
+		List<Categorie> cats = categorieService.getAllByMagasin(magasin.getIdMagasin());
+		return cats;
 	}
 
 }

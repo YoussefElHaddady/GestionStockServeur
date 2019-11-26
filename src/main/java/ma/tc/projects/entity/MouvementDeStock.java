@@ -34,6 +34,12 @@ public class MouvementDeStock implements Serializable {
 	private Date dateMvmt;
 
 	@NotNull
+	private double prixAchat;
+
+	@NotNull
+	private double prixVente;
+
+	@NotNull
 	private int quantite;
 
 	@Enumerated(EnumType.STRING)
@@ -42,11 +48,11 @@ public class MouvementDeStock implements Serializable {
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_produit", nullable = false)
-	public Produit produit;
+	private Produit produit;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_magasin", nullable = false)
-	public Magasin magasin;
+	private Magasin magasin;
 
 	/*
 	 * @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -57,6 +63,30 @@ public class MouvementDeStock implements Serializable {
 
 	public MouvementDeStock() {
 
+	}
+
+	public MouvementDeStock(@NotNull Date dateMvmt, @NotNull double prixAchat, @NotNull double prixVente,
+			@NotNull int quantite, @NotNull TypeDeMvmt type) {
+		super();
+		this.dateMvmt = dateMvmt;
+		this.prixAchat = prixAchat;
+		this.prixVente = prixVente;
+		this.quantite = quantite;
+		this.type = type;
+	}
+
+	public MouvementDeStock(long idMvmtStk, @NotNull Date dateMvmt, @NotNull double prixAchat,
+			@NotNull double prixVente, @NotNull int quantite, @NotNull TypeDeMvmt type, Produit produit,
+			Magasin magasin) {
+		super();
+		this.idMvmtStk = idMvmtStk;
+		this.dateMvmt = dateMvmt;
+		this.prixAchat = prixAchat;
+		this.prixVente = prixVente;
+		this.quantite = quantite;
+		this.type = type;
+		this.produit = produit;
+		this.magasin = magasin;
 	}
 
 	public MouvementDeStock(Produit produit, Magasin magasin, @NotNull TypeDeMvmt type, @NotNull int quantite,
@@ -83,6 +113,22 @@ public class MouvementDeStock implements Serializable {
 
 	public void setDateMvmt(Date dateMvmt) {
 		this.dateMvmt = dateMvmt;
+	}
+
+	public double getPrixAchat() {
+		return prixAchat;
+	}
+
+	public void setPrixAchat(double prixAchat) {
+		this.prixAchat = prixAchat;
+	}
+
+	public double getPrixVente() {
+		return prixVente;
+	}
+
+	public void setPrixVente(double prixVente) {
+		this.prixVente = prixVente;
 	}
 
 	public int getQuantite() {
@@ -117,10 +163,4 @@ public class MouvementDeStock implements Serializable {
 		this.magasin = magasin;
 	}
 
-	/*
-	 * public User getUtilisateur() { return utilisateur; }
-	 * 
-	 * public void setUtilisateur(User utilisateur) { this.utilisateur =
-	 * utilisateur; }
-	 */
 }

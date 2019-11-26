@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import ma.tc.projects.entity.Categorie;
+import ma.tc.projects.entity.DetailProduit;
+import ma.tc.projects.entity.MouvementDeStock;
 import ma.tc.projects.entity.Produit;
 import ma.tc.projects.message.response.ProductCount;
 import ma.tc.projects.repository.ProduitRepository;
@@ -64,8 +67,8 @@ public class ProduitService implements ICrudService<Produit, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Produit> iterable) {
-		//produitRepo.deleteAll(iterable);
-		
+		// produitRepo.deleteAll(iterable);
+
 		iterable.forEach(item -> this.deleteControlled(item.getIdProduit(), "any"));
 	}
 
@@ -77,8 +80,32 @@ public class ProduitService implements ICrudService<Produit, Long> {
 		return produitRepo.findByCodeProduit(code);
 	}
 
+	public List<Produit> getByCategorieId(long id_categorie) {
+
+		List<Produit> produits = produitRepo.findByCategorie(new Categorie(id_categorie, null, null));
+
+		produits.forEach(produit -> {
+			List<MouvementDeStock> mvmts = mouvementDeStockService.getDetailsProduit(produit.getIdProduit());
+			List<DetailProduit> details = new ArrayList<>();
+
+			mvmts.forEach(mvmt -> {
+				details.add(new DetailProduit(mvmt.getMagasin().getIdMagasin(), mvmt.getDateMvmt(), mvmt.getPrixAchat(),
+						mvmt.getPrixVente(), mvmt.getQuantite()));
+			});
+			produit.setDetails(details);
+		});
+
+		return produits;
+	}
+
+//	public List<Produit> getAllByMagasinCategorie(long idMagasin, long idCategorie) {
+//		return produitRepo.findByMagasinCategorie(idMagasin, idCategorie);
+//	}
+
 	public List<Produit> getAllByMagasinCategorie(long idMagasin, long idCategorie) {
-		return produitRepo.findByMagasinCategorie(idMagasin, idCategorie);
+		List<Produit> produits = produitRepo.findAll();
+
+		return produits;
 	}
 
 	public List<ProductCount> getCount() {
@@ -97,10 +124,10 @@ public class ProduitService implements ICrudService<Produit, Long> {
 //			return false;
 
 		Produit prod = produitRepo.findById(idProduit).orElse(null);
-		
-		if(prod == null)
+
+		if (prod == null)
 			return false;
-		
+
 		ligneCmdClientService.deleteByProduit(prod);
 		ligneCmdFournisseurService.deleteByProduit(prod);
 		mouvementDeStockService.deleteByProduit(prod);

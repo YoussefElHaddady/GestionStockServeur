@@ -11,7 +11,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,15 +28,9 @@ public class Categorie implements Serializable {
 
 	private String description;
 
-	@JsonIgnoreProperties("categorie")
+	@JsonIgnoreProperties({ "hibernateLazyInitializer", "categorie" })
 	@OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Produit> produits = new ArrayList<>();
-
-	// this attribute well not be mapped (not a database attribute)
-	// we'll need it to return the quantities of products in the category (for the
-	// current Magasin)
-	@Transient
-	private List<Integer> quantites;
 
 	public Categorie() {
 
@@ -88,13 +81,13 @@ public class Categorie implements Serializable {
 		this.produits = produits;
 	}
 
-	public List<Integer> getQuantites() {
-		return quantites;
-	}
-
-	public void setQuantites(List<Integer> quantites) {
-		this.quantites = quantites;
-	}
+//	public List<Integer> getQuantites() {
+//		return quantites;
+//	}
+//
+//	public void setQuantites(List<Integer> quantites) {
+//		this.quantites = quantites;
+//	}
 
 	public void addProduit(Produit produit) {
 		produits.add(produit);

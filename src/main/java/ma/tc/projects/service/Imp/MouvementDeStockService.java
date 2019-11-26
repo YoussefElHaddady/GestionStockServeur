@@ -55,6 +55,11 @@ public class MouvementDeStockService implements ICrudService<MouvementDeStock, L
 	public void deleteAll(Iterable<MouvementDeStock> iterable) {
 		mouvementDeStockRepo.deleteAll(iterable);
 	}
+	
+	
+	public List<MouvementDeStock> getDetailsProduit(long idProduit) {
+		return mouvementDeStockRepo.findDetails(idProduit);
+	}
 
 	public List<Integer> getQuantiteByMagProd(long id_magasin, Long id_categorie) {
 

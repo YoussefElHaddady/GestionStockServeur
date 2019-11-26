@@ -62,11 +62,11 @@ public class ProduitController extends CrudController<Produit, Long> {
 			Categorie categorie = categorieRepo.findByLabel(entity.getCategorie().getLabel())
 					.orElseThrow(() -> new RuntimeException("Fail -> Unknown categorie!"));
 
-			Produit prod = new Produit(entity.getCodeProduit(), entity.getLibelle(), entity.getDescription(),
-					entity.getDateExp(), entity.getDatePro(), entity.getPrixDachat(), entity.getPrixUnitaire(),
-					categorie);
+//			Produit prod = new Produit(entity.getCodeProduit(), entity.getLibelle(), entity.getDescription(),
+//					entity.getDateExp(), entity.getDatePro(), entity.getPrixDachat(), entity.getPrixUnitaire(),
+//					categorie);
 
-			prods.add(prod);
+//			prods.add(prod);
 		});
 
 		produitRepo.saveAll(prods);

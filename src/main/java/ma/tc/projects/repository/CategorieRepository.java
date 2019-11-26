@@ -24,4 +24,8 @@ public interface CategorieRepository extends JpaRepository<Categorie, Long>{
 	@Query(value = "SELECT c.id_categorie, c.label, c.description FROM categories c, produits p, mouvement_de_stock m WHERE c.id_categorie = p.id_categorie AND p.id_produit = m.id_produit AND m.id_magasin = :idMagasin OR c.id_categorie = :notCatId GROUP BY c.id_categorie ORDER BY c.id_categorie ", 
 	nativeQuery = true)
 	public List<Categorie> findByMagasin(@Param("idMagasin") long idMagasin, @Param("notCatId") long notCatId);
+	
+	
+	@Query(value = "SELECT c.id_categorie, c.label, c.description FROM categories c ORDER BY c.id_categorie", nativeQuery = true)
+	public List<Categorie> findCategories();
 }

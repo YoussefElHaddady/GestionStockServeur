@@ -2,6 +2,7 @@ package ma.tc.projects.entity;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.NaturalId;
@@ -41,29 +43,42 @@ public class Produit implements Serializable {
 	@Temporal(TemporalType.DATE)
 	private Date datePro;
 
-	private double prixDachat;
-	private double prixUnitaire;
-
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "produits" })
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_categorie", nullable = false)
 	private Categorie categorie;
 
+	@Transient
+	private List<DetailProduit> details;
+
 	public Produit() {
 
 	}
 
-	public Produit(@NotNull String codeProduit, String libelle, String description, Date dateExp, Date datePro,
-			double prixDachat, double prixUnitaire, Categorie categorie) {
+	public Produit(@NotNull String codeProduit, @NotNull String libelle, String description, String image, Date dateExp,
+			Date datePro, Categorie categorie) {
 		super();
 		this.codeProduit = codeProduit;
 		this.libelle = libelle;
 		this.description = description;
+		this.image = image;
 		this.dateExp = dateExp;
 		this.datePro = datePro;
-		this.prixDachat = prixDachat;
-		this.prixUnitaire = prixUnitaire;
 		this.categorie = categorie;
+	}
+
+	public Produit(long idProduit, @NotNull String codeProduit, @NotNull String libelle, String description,
+			String image, Date dateExp, Date datePro, Categorie categorie, List<DetailProduit> details) {
+		super();
+		this.idProduit = idProduit;
+		this.codeProduit = codeProduit;
+		this.libelle = libelle;
+		this.description = description;
+		this.image = image;
+		this.dateExp = dateExp;
+		this.datePro = datePro;
+		this.categorie = categorie;
+		this.details = details;
 	}
 
 	public long getIdProduit() {
@@ -122,28 +137,20 @@ public class Produit implements Serializable {
 		this.datePro = datePro;
 	}
 
-	public double getPrixDachat() {
-		return prixDachat;
-	}
-
-	public void setPrixDachat(double prixDachat) {
-		this.prixDachat = prixDachat;
-	}
-
-	public double getPrixUnitaire() {
-		return prixUnitaire;
-	}
-
-	public void setPrixUnitaire(double prixUnitaire) {
-		this.prixUnitaire = prixUnitaire;
-	}
-
 	public Categorie getCategorie() {
 		return categorie;
 	}
 
 	public void setCategorie(Categorie categorie) {
 		this.categorie = categorie;
+	}
+
+	public List<DetailProduit> getDetails() {
+		return details;
+	}
+
+	public void setDetails(List<DetailProduit> details) {
+		this.details = details;
 	}
 
 	@Override
