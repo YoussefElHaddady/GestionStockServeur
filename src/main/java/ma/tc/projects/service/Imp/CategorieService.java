@@ -1,6 +1,5 @@
 package ma.tc.projects.service.Imp;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,20 +21,17 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 	@Autowired
 	private ProduitService produitService;
 
-	@Autowired
-	private MouvementDeStockService mouvementDeStockService;
-
 	@Override
 	public List<Categorie> getAll() {
-//		return categorieRepo.findAll();
 		long startTime = System.currentTimeMillis();
-		
+
 		List<Categorie> categories = categorieRepo.findCategories();
 
 		categories.forEach(categorie -> {
 			List<Produit> prods = produitService.getByCategorieId(categorie.getIdCategorie());
 			categorie.setProduits(prods);
 		});
+		
 		System.out.println("query result : the list of categories has been fetched");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");
 		return categories;
@@ -63,34 +59,33 @@ public class CategorieService implements ICrudService<Categorie, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Categorie> iterable) {
-//		categorieRepo.deleteAll(iterable);
 		iterable.forEach(item -> this.deleteControlled(item.getIdCategorie(), "any"));
 	}
-	
-	public boolean exists(String label) {
+
+	public boolean existsByLabel(String label) {
 		return categorieRepo.existsByLabel(label);
 	}
-	
+
 	public Categorie findByLabel(String label) {
 		return categorieRepo.findByLabel(label).orElse(null);
 	}
 
 	public List<Categorie> getAllByMagasin(long idMagasin) {
-//		Categorie notCat = categorieRepo.findByLabel("غير مصنف").get();
-//
-//		List<Categorie> categories = categorieRepo.findByMagasin(idMagasin, notCat.getIdCategorie());
-//
-//		categories.forEach(categorie -> {
-//			List<Produit> prods = produitService.getAllByMagasinCategorie(idMagasin, categorie.getIdCategorie());
-//			categorie.setProduits(prods);
-//
+		Categorie notCat = categorieRepo.findByLabel("غير مصنف").orElse(null);
+
+		List<Categorie> categories = categorieRepo.findByMagasin(idMagasin, notCat.getIdCategorie());
+
+		categories.forEach(categorie -> {
+			List<Produit> prods = produitService.getAllByMagasinCategorie(idMagasin, categorie.getIdCategorie());
+			categorie.setProduits(prods);
+
 //			List<Long> ids = new ArrayList<>();
 //			prods.forEach(prod -> ids.add(prod.getIdProduit()));
 //			if (ids.size() != 0)
 //				categorie.setQuantites(mouvementDeStockService.getQuantiteByMagProdsIds(idMagasin, ids));
-//		});
-//
-		return null;
+		});
+
+		return categories;
 	}
 
 	public boolean deleteControlled(long id_categorie, String decision) {

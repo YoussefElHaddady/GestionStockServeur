@@ -14,16 +14,14 @@ import ma.tc.projects.entity.Fournisseur;
 import ma.tc.projects.message.response.ResponseMessage;
 import ma.tc.projects.service.Imp.FournisseurService;
 
-
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequestMapping("/api/fournisseur")
-public class FournisseurController extends CrudController<Fournisseur, Long>{
-	
+public class FournisseurController extends CrudController<Fournisseur, Long> {
+
 	@Autowired
 	private FournisseurService fournisseurService;
 
-	
 	@DeleteMapping("/{id}/{decision}")
 	public ResponseEntity<?> delete(@PathVariable long id, @PathVariable String decision) {
 

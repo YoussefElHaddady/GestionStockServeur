@@ -1,17 +1,8 @@
 package ma.tc.projects.controller;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import ma.tc.projects.entity.Categorie;
-import ma.tc.projects.entity.Ouvrier;
-import ma.tc.projects.service.ICrudService;
-import ma.tc.projects.service.Imp.OuvrierService;
  
 
 /*

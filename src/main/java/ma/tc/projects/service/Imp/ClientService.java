@@ -39,9 +39,6 @@ public class ClientService implements ICrudService<Client, Long> {
 
 	@Override
 	public void delete(Long id_client) {
-//		Client a = new Client();
-//		a.setIdClient(id_client);
-//		clientRepo.delete(a);
 		throw new RuntimeException("not implemented method Client.delete");
 	}
 
@@ -52,7 +49,6 @@ public class ClientService implements ICrudService<Client, Long> {
 
 	@Override
 	public void deleteAll(Iterable<Client> iterable) {
-//		clientRepo.deleteAll(iterable);
 		iterable.forEach(item -> deleteControlled(item.getIdClient(), "any"));
 	}
 

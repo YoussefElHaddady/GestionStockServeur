@@ -3,14 +3,13 @@ package ma.tc.projects.service.Imp;
 import java.util.List;
 import java.util.Optional;
 
-import ma.tc.projects.entity.AppUser;
-import ma.tc.projects.repository.AppRoleRepository;
-import ma.tc.projects.repository.AppUserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 
+import ma.tc.projects.entity.AppUser;
 import ma.tc.projects.entity.Magasin;
+import ma.tc.projects.repository.AppUserRepository;
 import ma.tc.projects.repository.MagasinRepository;
 import ma.tc.projects.service.ICrudService;
 

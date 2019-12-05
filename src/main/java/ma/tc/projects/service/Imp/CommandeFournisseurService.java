@@ -1,6 +1,5 @@
 package ma.tc.projects.service.Imp;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,8 +10,8 @@ import org.springframework.stereotype.Service;
 
 import ma.tc.projects.entity.Categorie;
 import ma.tc.projects.entity.CommandeFournisseur;
+import ma.tc.projects.entity.DetailProduit;
 import ma.tc.projects.entity.Fournisseur;
-import ma.tc.projects.entity.LigneCmdFournisseur;
 import ma.tc.projects.entity.Magasin;
 import ma.tc.projects.entity.MouvementDeStock;
 import ma.tc.projects.entity.Produit;
@@ -29,9 +28,6 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 	@Autowired
 	private CommandeFournisseurRepository commandeFournisseurRepo;
-
-	@Autowired
-	private MagasinService magasinService;
 
 	@Autowired
 	private FournisseurService fournisseurService;
@@ -51,8 +47,6 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 	@Autowired
 	private MouvementDeStockService mouvementDeStockService;
 
-	private int i;
-
 	@Override
 	public List<CommandeFournisseur> getAll() {
 		return commandeFournisseurRepo.findAll();
@@ -60,7 +54,7 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 	@Override
 	public void add(CommandeFournisseur commandeFournisseur) {
-//		commandeFournisseurRepo.save(commandeFournisseur);
+		throw new RuntimeException("not implemented method CommandeFournisseurService.add");
 	}
 
 	@Override
@@ -70,27 +64,26 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 	@Override
 	public void delete(Long id_commandeFournisseur) {
-//		CommandeFournisseur a = new CommandeFournisseur();
-//		a.setIdCmdFournisseur(id_commandeFournisseur);
-//		commandeFournisseurRepo.delete(a);
 		throw new RuntimeException("not implemented method CommandeFournisseurService.delete");
 	}
 
 	@Override
 	public void saveAll(Iterable<CommandeFournisseur> iterable) {
-//		commandeFournisseurRepo.saveAll(iterable);
+		throw new RuntimeException("not implemented method CommandeFournisseurService.saveAll");
 	}
 
 	@Override
 	public void deleteAll(Iterable<CommandeFournisseur> iterable) {
-//		commandeFournisseurRepo.deleteAll(iterable);
 		iterable.forEach(item -> this.deleteControlled(item.getIdCmdFournisseur()));
+	}
+
+	public List<CommandeFournisseur> getByFournisseur(Fournisseur fournisseur) {
+		return commandeFournisseurRepo.findByFournisseur(fournisseur).orElse(null);
 	}
 
 	public void addCommande(CommandeFournisseurAddingRequest commandeReq) {
 		long startTime = System.currentTimeMillis();
 		long generatedLong = ThreadLocalRandom.current().nextLong();
-		Magasin magasin = magasinService.getById(commandeReq.getIdMagasin());
 
 		// Insert Fournisseur if not exist in database
 		if (commandeReq.getFournisseur().getIdFournisseur() <= 0) {
@@ -103,14 +96,11 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 		// Insert CommandeFournisseur object
 		commandeFournisseurRepo.save(cmd);
 
-		// Insert commandeFournisseur's ReglementFournisseur list objects
+		// Insert the list of ReglementFournisseur objects (for the current command)
 		commandeReq.getReglements().forEach(reglement -> reglementService
 				.add(new ReglementFournisseur(new Date(), reglement.getMode(), reglement.getMontant(), cmd)));
 
-		// Insert commandeFournisseur's LigneCmdFournisseur list objects
-		List<LigneCmdFournisseur> lignesCmd = new ArrayList<>();
-		List<Long> ids = new ArrayList<>();
-
+		// Insert the list of LigneCmdFournisseur objects (for the current command)
 		commandeReq.getLignesCmdFournisseur().forEach(ligne -> {
 			ligne.setCommandeFournisseur(cmd);
 			Produit prodLigne = ligne.getProduit();
@@ -121,29 +111,32 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 				// Insert Categorie if not exist in database
 				if (catProd.getIdCategorie() <= 0) {
-						if(categorieService.exists(catProd.getLabel()))
-							prodLigne.setCategorie(categorieService.findByLabel(catProd.getLabel()));
-						else
-							categorieService.add(catProd);
+					if (categorieService.existsByLabel(catProd.getLabel()))
+						prodLigne.setCategorie(categorieService.findByLabel(catProd.getLabel()));
+					else
+						categorieService.add(catProd);
 				}
-
-				produitService.add(prodLigne);
-				mouvementDeStockService.add(new MouvementDeStock(prodLigne, magasin, TypeDeMvmt.DEPOT, 0, new Date()));
+				if (produitService.existsByLibelle(prodLigne.getLibelle()))
+					prodLigne.setIdProduit(produitService.getByLibelle(prodLigne.getLibelle()).getIdProduit());
+				else
+					produitService.add(prodLigne);
 			}
-			ids.add(prodLigne.getIdProduit());
-			lignesCmd.add(ligne);
-		});
-		ligneCmdFournisseurService.saveAll(lignesCmd);
 
-		// Insert MouvementDeStock list objects
-		List<MouvementDeStock> mouvementsDeStock = new ArrayList<MouvementDeStock>();
-		List<Integer> quantites = mouvementDeStockService.getQuantiteByMagProdsIds(commandeReq.getIdMagasin(), ids);
-		i = 0;
-		commandeReq.getLignesCmdFournisseur().forEach(ligne -> {
-			mouvementsDeStock.add(new MouvementDeStock(ligne.getProduit(), magasin, TypeDeMvmt.DEPOT,
-					quantites.get(i++) + ligne.getQuantite(), new Date()));
+			List<MouvementDeStock> originDetails = mouvementDeStockService.getDetailsProduit(prodLigne.getIdProduit());
+			DetailProduit detail = prodLigne.getDetails().get(0);
+
+			// prodLigne.getDetails().forEach(detail -> {
+			MouvementDeStock mm = originDetails.stream()
+					.filter(dt -> dt.getMagasin().getIdMagasin() == detail.getIdMagasin()).findFirst().orElse(null);
+
+			int quantite = mm != null ? mm.getQuantite() : 0;
+
+			mouvementDeStockService.add(new MouvementDeStock(new Date(), detail.getPrixAchat(), detail.getPrixVente(),
+					quantite + detail.getQuantite(), TypeDeMvmt.DEPOT, prodLigne, new Magasin(detail.getIdMagasin())));
+			// });
+
+			ligneCmdFournisseurService.add(ligne);
 		});
-		mouvementDeStockService.saveAll(mouvementsDeStock);
 
 		System.out.println("query result : CommandeFournisseur inserted");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");
@@ -166,10 +159,6 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 		commandeFournisseurRepo.delete(commandeFournisseur);
 
 		return true;
-	}
-
-	public List<CommandeFournisseur> getByFournisseur(Fournisseur fournisseur) {
-		return commandeFournisseurRepo.findByFournisseur(fournisseur).orElse(null);
 	}
 
 }

@@ -39,8 +39,7 @@ public class CategorieController extends CrudController<Categorie, Long> {
 	@PostMapping("/by_mag")
 	public List<Categorie> getAllByMagasin(@RequestBody Magasin magasin) {
 
-		List<Categorie> cats = categorieService.getAllByMagasin(magasin.getIdMagasin());
-		return cats;
+		return categorieService.getAllByMagasin(magasin.getIdMagasin());
 	}
 
 }

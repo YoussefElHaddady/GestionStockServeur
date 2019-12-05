@@ -94,8 +94,8 @@ public class OuvrierService implements ICrudService<Ouvrier, Long> {
 		ouvrierRepo.save(ov);
 	}
 
-	@Scheduled(cron = "0 0 0 1/1 * ?") // every day at 12h00 AM
-//	@Scheduled(cron = "0 0 0 1 1/1 ?")	// monthly at 12:00 AM
+//	@Scheduled(cron = "0 0 0 1/1 * ?") // every day at 12h00 AM
+	@Scheduled(cron = "0 0 0 1 1/1 ?")	// monthly at 12:00 AM
 	public void increaseAvanceAtMonthEnd() {
 
 		ouvrierRepo.increaseAvanceAtMonthEnd();

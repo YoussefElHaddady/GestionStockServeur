@@ -75,11 +75,10 @@ public class MouvementDeStock implements Serializable {
 		this.type = type;
 	}
 
-	public MouvementDeStock(long idMvmtStk, @NotNull Date dateMvmt, @NotNull double prixAchat,
+	public MouvementDeStock(@NotNull Date dateMvmt, @NotNull double prixAchat,
 			@NotNull double prixVente, @NotNull int quantite, @NotNull TypeDeMvmt type, Produit produit,
 			Magasin magasin) {
 		super();
-		this.idMvmtStk = idMvmtStk;
 		this.dateMvmt = dateMvmt;
 		this.prixAchat = prixAchat;
 		this.prixVente = prixVente;

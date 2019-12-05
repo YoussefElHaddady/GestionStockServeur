@@ -24,11 +24,13 @@ public class MouvementDeStockController extends CrudController<MouvementDeStock,
 
 	@PostMapping("/by_mag_prod")
 	public List<Integer> getQuantite(@RequestBody ProdQuantity prodQuantityReq) {
-		return msService.getQuantiteByMagProd(prodQuantityReq.getIdMagasin(), prodQuantityReq.getIdCategorie());
+		return null;
+//		return msService.getQuantiteByMagProd(prodQuantityReq.getIdMagasin(), prodQuantityReq.getIdCategorie());
 	}
 
 	@PostMapping("/first_category")
 	public List<Integer> getFirstQuantites(@RequestBody long idMagasin) {
-		return msService.getQuantitiesForTheFirstCategory(idMagasin);
+		return null;
+//		return msService.getQuantitiesForTheFirstCategory(idMagasin);
 	}
 }

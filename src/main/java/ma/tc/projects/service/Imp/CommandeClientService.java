@@ -1,6 +1,5 @@
 package ma.tc.projects.service.Imp;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -11,9 +10,9 @@ import org.springframework.stereotype.Service;
 
 import ma.tc.projects.entity.Client;
 import ma.tc.projects.entity.CommandeClient;
-import ma.tc.projects.entity.LigneCmdClient;
 import ma.tc.projects.entity.Magasin;
 import ma.tc.projects.entity.MouvementDeStock;
+import ma.tc.projects.entity.Produit;
 import ma.tc.projects.entity.ReglementClient;
 import ma.tc.projects.enums.TypeDeMvmt;
 import ma.tc.projects.message.request.CommandeClientAddingRequest;
@@ -29,9 +28,6 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 	private CommandeClientRepository commandeClientRepo;
 
 	@Autowired
-	private MagasinService magasinService;
-
-	@Autowired
 	private ClientService clientService;
 
 	@Autowired
@@ -43,8 +39,6 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 	@Autowired
 	private MouvementDeStockService mouvementDeStockService;
 
-	private int i;
-
 	@Override
 	public List<CommandeClient> getAll() {
 		return commandeClientRepo.findAll();
@@ -52,7 +46,7 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 	@Override
 	public void add(CommandeClient commandeClient) {
-		// commandeClientRepo.save(commandeClient);
+		throw new RuntimeException("not implemented method CommandeClientService.add");
 	}
 
 	@Override
@@ -67,19 +61,17 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 	@Override
 	public void saveAll(Iterable<CommandeClient> iterable) {
-		// commandeClientRepo.saveAll(iterable);
+		throw new RuntimeException("not implemented method CommandeClientService.saveAll");
 	}
 
 	@Override
 	public void deleteAll(Iterable<CommandeClient> iterable) {
-//		commandeClientRepo.deleteAll(iterable);
 		iterable.forEach(item -> this.deleteControlled(item.getIdCommandeClient()));
 	}
 
 	public void addCommande(CommandeClientAddingRequest commandeReq) {
 		long startTime = System.currentTimeMillis();
 		long generatedLong = ThreadLocalRandom.current().nextLong();
-		Magasin magasin = magasinService.getById(commandeReq.getIdMagasin());
 
 		// Insert Client if not exist in database
 		if (commandeReq.getClient().getIdClient() <= 0) {
@@ -93,33 +85,29 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 		// Insert CommandeClient object
 		commandeClientRepo.save(cmd);
 
-		// searching for CommandeClient with its code cuz we'll need this command with
-		// its id (we don't have it until now)
-//		cmd = commandeClientRepo.findByCodeCmd(cmd.getCodeCmd()).orElseThrow(() -> new RuntimeException(
-//				"Fail! -> Cause: commande client not find in CommandeClientService.addCommande()."));
-
-		// Insert commandeClient's ReglementClient list objects
+		// Insert the list of ReglementClient objects
 		commandeReq.getReglements().forEach(reglement -> reglementService
 				.add(new ReglementClient(new Date(), reglement.getMode(), reglement.getMontant(), cmd)));
 
-		// Insert commandeClient's LigneCmdClient list objects
-		List<LigneCmdClient> lignesCmd = new ArrayList<>();
-		List<Long> ids = new ArrayList<>();
+		// Insert the list of LigneCmdClient & MouvementDeStock objects
 		commandeReq.getLignesCmdClient().forEach(ligne -> {
 			ligne.setCommandeClient(cmd);
-			ids.add(ligne.getProduit().getIdProduit());
-			lignesCmd.add(ligne);
-		});
-		ligneCmdClientService.saveAll(lignesCmd);
+			Produit prodLigne = ligne.getProduit();
 
-		List<MouvementDeStock> mouvementsDeStock = new ArrayList<MouvementDeStock>();
-		List<Integer> quantites = mouvementDeStockService.getQuantiteByMagProdsIds(commandeReq.getIdMagasin(), ids);
-		i = 0;
-		commandeReq.getLignesCmdClient().forEach(ligne -> {
-			mouvementsDeStock.add(new MouvementDeStock(ligne.getProduit(), magasin, TypeDeMvmt.VENTE,
-					quantites.get(i++) - ligne.getQuantiteServie(), new Date()));
+			List<MouvementDeStock> originDetails = mouvementDeStockService.getDetailsProduit(prodLigne.getIdProduit());
+
+			prodLigne.getDetails().forEach(detail -> {
+				MouvementDeStock mm = originDetails.stream()
+						.filter(dt -> dt.getMagasin().getIdMagasin() == detail.getIdMagasin()).findFirst().orElse(null);
+
+				if (mm != null)
+					mouvementDeStockService.add(new MouvementDeStock(new Date(), detail.getPrixAchat(),
+							detail.getPrixVente(), mm.getQuantite() - detail.getQuantite(), TypeDeMvmt.VENTE, prodLigne,
+							new Magasin(detail.getIdMagasin())));
+			});
+
+			ligneCmdClientService.add(ligne);
 		});
-		mouvementDeStockService.saveAll(mouvementsDeStock);
 
 		System.out.println("query result : CommandeClient inserted");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");

@@ -75,15 +75,28 @@ public class ProduitService implements ICrudService<Produit, Long> {
 	public Produit getByLibelle(String libelle) {
 		return produitRepo.findByLibelle(libelle);
 	}
+	
+	public boolean existsByLibelle(String libelle) {
+		return produitRepo.existsByLibelle(libelle);
+	}
 
 	public Produit getByCodeProduit(String code) {
 		return produitRepo.findByCodeProduit(code);
 	}
 
 	public List<Produit> getByCategorieId(long id_categorie) {
-
 		List<Produit> produits = produitRepo.findByCategorie(new Categorie(id_categorie, null, null));
 
+		return setDetailsForProduct(produits);
+	}
+
+	public List<Produit> getAllByMagasinCategorie(long idMagasin, long idCategorie) {
+		List<Produit> produits = produitRepo.findByMagasinCategorie(idMagasin, idCategorie);
+
+		return setDetailsForProduct(produits);
+	}
+
+	private List<Produit> setDetailsForProduct(List<Produit> produits) {
 		produits.forEach(produit -> {
 			List<MouvementDeStock> mvmts = mouvementDeStockService.getDetailsProduit(produit.getIdProduit());
 			List<DetailProduit> details = new ArrayList<>();
@@ -94,16 +107,6 @@ public class ProduitService implements ICrudService<Produit, Long> {
 			});
 			produit.setDetails(details);
 		});
-
-		return produits;
-	}
-
-//	public List<Produit> getAllByMagasinCategorie(long idMagasin, long idCategorie) {
-//		return produitRepo.findByMagasinCategorie(idMagasin, idCategorie);
-//	}
-
-	public List<Produit> getAllByMagasinCategorie(long idMagasin, long idCategorie) {
-		List<Produit> produits = produitRepo.findAll();
 
 		return produits;
 	}

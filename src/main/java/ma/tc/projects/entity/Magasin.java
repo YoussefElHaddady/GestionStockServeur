@@ -23,13 +23,18 @@ public class Magasin implements Serializable {
 
 	@JsonIgnoreProperties({ "hibernateLazyInitializer", "magasin" })
 	@OneToOne(fetch = FetchType.LAZY, optional = false)
-	@JoinColumn(name = "id_user", nullable = false,referencedColumnName = "id")
+	@JoinColumn(name = "id_user", nullable = false, referencedColumnName = "id")
 	public AppUser user;
 
 	public Magasin() {
 
 	}
-	
+
+	public Magasin(long idMagasin) {
+		super();
+		this.idMagasin = idMagasin;
+	}
+
 	public Magasin(String nom, String adresse, int numero_patente, int superficie) {
 		super();
 		this.nom = nom;
