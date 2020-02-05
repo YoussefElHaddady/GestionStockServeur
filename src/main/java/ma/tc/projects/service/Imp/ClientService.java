@@ -1,6 +1,7 @@
 package ma.tc.projects.service.Imp;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -54,6 +55,25 @@ public class ClientService implements ICrudService<Client, Long> {
 
 	public int getCount() {
 		return clientRepo.clientsCount();
+	}
+	
+	public double getCredit(Client client) {
+		Client cli = clientRepo.findById(client.getIdClient()).orElseThrow(() -> new RuntimeException("Fail! -> Cause: Client not find ClientService.getCredit"));
+		
+		return cli.getCredit();
+	}
+	
+	// le montant peut etre negati ou positif
+	public boolean addCredit(long idClient, double montant) {
+//		Client cli = clientRepo.findById(idClient).orElseThrow(() -> new RuntimeException("Fail! -> Cause: Client not find ClientService.getCredit"));
+		Client cli = clientRepo.findById(idClient).orElse(null);
+		
+		if(cli == null)
+			return false;
+		
+		cli.setCredit(cli.getCredit() + montant);
+		clientRepo.save(cli);
+		return true;
 	}
 	
 	public boolean deleteControlled(long id_client, String decision) {

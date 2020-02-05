@@ -76,5 +76,10 @@ public class ChargeService implements ICrudService<Charge, Long> {
 		chargeRepo.deleteByTypeDeCharge(typeDeCharge.getIdTypeCharge());
 		return true;
 	}
+	
+	public int getOutcomes() {
+		Integer outcomes = chargeRepo.getChargesOutcomes();
+		return outcomes == null ? 0 : outcomes;
+	}
 
 }

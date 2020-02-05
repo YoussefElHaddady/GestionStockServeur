@@ -44,5 +44,20 @@ public class StatistiquesController {
 	public List<MonthlyCount> getCommandesClientCount() {
 		return statistiquesService.getCommandesClientCount();
 	}
+	
+	@GetMapping("/incomes")
+	public int incomes() {
+		return statistiquesService.getIncomes();
+	}
+	
+	@GetMapping("/outcomes")
+	public int outcomes() {
+		return statistiquesService.getOutcomes();
+	}
+	
+	@GetMapping("/charges/outcomes")
+	public int chargesOutcomes() {
+		return statistiquesService.getChargesOutcomes();
+	}
 
 }

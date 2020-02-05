@@ -38,8 +38,8 @@ public class CommandeClientController extends CrudController<CommandeClient, Lon
 
 	@PostMapping("/add_commande")
 	public ResponseEntity<?> addCmd(@RequestBody CommandeClientAddingRequest commande) {
-		commandeClientService.addCommande(commande);
-		return new ResponseEntity<>(new ResponseMessage(ResponseMessage.INSERT_SUCCESS), HttpStatus.ACCEPTED);
+		String code = commandeClientService.addCommande(commande);
+		return new ResponseEntity<>(new ResponseMessage(code), HttpStatus.ACCEPTED);
 	}
 
 }

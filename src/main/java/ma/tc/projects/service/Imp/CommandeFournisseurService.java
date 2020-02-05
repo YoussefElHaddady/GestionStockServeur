@@ -16,6 +16,8 @@ import ma.tc.projects.entity.Magasin;
 import ma.tc.projects.entity.MouvementDeStock;
 import ma.tc.projects.entity.Produit;
 import ma.tc.projects.entity.ReglementFournisseur;
+import ma.tc.projects.enums.Code;
+import ma.tc.projects.enums.ModeReglementEnum;
 import ma.tc.projects.enums.TypeDeMvmt;
 import ma.tc.projects.message.request.CommandeFournisseurAddingRequest;
 import ma.tc.projects.message.response.MonthlyCount;
@@ -81,24 +83,29 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 		return commandeFournisseurRepo.findByFournisseur(fournisseur).orElse(null);
 	}
 
-	public void addCommande(CommandeFournisseurAddingRequest commandeReq) {
+	public String addCommande(CommandeFournisseurAddingRequest commandeReq) {
 		long startTime = System.currentTimeMillis();
-		long generatedLong = ThreadLocalRandom.current().nextLong();
 
 		// Insert Fournisseur if not exist in database
 		if (commandeReq.getFournisseur().getIdFournisseur() <= 0) {
 			fournisseurService.add(commandeReq.getFournisseur());
 		}
 
-		CommandeFournisseur cmd = new CommandeFournisseur("cmd" + generatedLong, commandeReq.getDateCmdF(),
+		String code = Code.generate("F" + commandeReq.getFournisseur().getIdFournisseur());
+		CommandeFournisseur cmd = new CommandeFournisseur(code, commandeReq.getDateCmdF(),
 				commandeReq.getMontantTotal(), commandeReq.getFournisseur());
 
 		// Insert CommandeFournisseur object
 		commandeFournisseurRepo.save(cmd);
 
 		// Insert the list of ReglementFournisseur objects (for the current command)
-		commandeReq.getReglements().forEach(reglement -> reglementService
-				.add(new ReglementFournisseur(new Date(), reglement.getMode(), reglement.getMontant(), cmd)));
+		commandeReq.getReglements().forEach(reglement -> {
+			if (reglement.getMode() == ModeReglementEnum.CREDIT)
+				fournisseurService.addCredit(commandeReq.getFournisseur(), -1 * reglement.getMontant());
+
+			reglementService
+					.add(new ReglementFournisseur(new Date(), reglement.getMode(), reglement.getMontant(), cmd));
+		});
 
 		// Insert the list of LigneCmdFournisseur objects (for the current command)
 		commandeReq.getLignesCmdFournisseur().forEach(ligne -> {
@@ -140,10 +147,16 @@ public class CommandeFournisseurService implements ICrudService<CommandeFourniss
 
 		System.out.println("query result : CommandeFournisseur inserted");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");
+		return cmd.getCodeCmdF();
 	}
 
 	public List<MonthlyCount> getCount() {
 		return commandeFournisseurRepo.commandeFournisseurCountPerMonth();
+	}
+
+	public int getOutcomes() {
+		Integer outcomes = commandeFournisseurRepo.getOutcomes();
+		return outcomes == null ? 0 : outcomes.intValue();
 	}
 
 	public boolean deleteControlled(long idCommandeFournisseur) {

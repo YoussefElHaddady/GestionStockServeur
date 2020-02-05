@@ -23,6 +23,10 @@ public class StatistiquesService {
 	private ProduitService produitService;
 	@Autowired
 	private CommandeClientService commadeClientService;
+	@Autowired
+	private CommandeFournisseurService commandeFournisseurService;
+	@Autowired
+	private ChargeService chargeService;
 
 	public int getClientsCount() {
 		return clientService.getCount();
@@ -44,4 +48,15 @@ public class StatistiquesService {
 		return commadeClientService.getCount();
 	}
 
+	public int getIncomes() {
+		return commadeClientService.getIncomes();
+	}
+
+	public int getOutcomes() {
+		return commandeFournisseurService.getOutcomes();
+	}
+	
+	public int getChargesOutcomes() {
+		return chargeService.getOutcomes();
+	}
 }

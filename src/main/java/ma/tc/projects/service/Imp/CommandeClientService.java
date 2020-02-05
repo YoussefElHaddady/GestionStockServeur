@@ -2,6 +2,7 @@ package ma.tc.projects.service.Imp;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,8 @@ import ma.tc.projects.entity.Magasin;
 import ma.tc.projects.entity.MouvementDeStock;
 import ma.tc.projects.entity.Produit;
 import ma.tc.projects.entity.ReglementClient;
+import ma.tc.projects.enums.Code;
+import ma.tc.projects.enums.ModeReglementEnum;
 import ma.tc.projects.enums.TypeDeMvmt;
 import ma.tc.projects.message.request.CommandeClientAddingRequest;
 import ma.tc.projects.message.response.MonthlyCount;
@@ -69,16 +72,16 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 		iterable.forEach(item -> this.deleteControlled(item.getIdCommandeClient()));
 	}
 
-	public void addCommande(CommandeClientAddingRequest commandeReq) {
+	public String addCommande(CommandeClientAddingRequest commandeReq) {
 		long startTime = System.currentTimeMillis();
-		long generatedLong = ThreadLocalRandom.current().nextLong();
 
 		// Insert Client if not exist in database
 		if (commandeReq.getClient().getIdClient() <= 0) {
 			clientService.add(commandeReq.getClient());
 		}
 
-		CommandeClient cmd = new CommandeClient("cmd" + generatedLong, commandeReq.getDateCmd(),
+		String code = Code.generate("C" + commandeReq.getClient().getIdClient());
+		CommandeClient cmd = new CommandeClient(code, commandeReq.getDateCmd(),
 				commandeReq.getMontantPaye(), commandeReq.getMontantTotal(), commandeReq.isLivraison());
 		cmd.setClient(commandeReq.getClient());
 
@@ -86,8 +89,12 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 		commandeClientRepo.save(cmd);
 
 		// Insert the list of ReglementClient objects
-		commandeReq.getReglements().forEach(reglement -> reglementService
-				.add(new ReglementClient(new Date(), reglement.getMode(), reglement.getMontant(), cmd)));
+		commandeReq.getReglements().forEach(reglement -> {
+			if(reglement.getMode() == ModeReglementEnum.CREDIT)
+				clientService.addCredit(commandeReq.getClient().getIdClient(), -1 * reglement.getMontant());
+		
+			reglementService.add(new ReglementClient(new Date(), reglement.getMode(), reglement.getMontant(), cmd));
+		});
 
 		// Insert the list of LigneCmdClient & MouvementDeStock objects
 		commandeReq.getLignesCmdClient().forEach(ligne -> {
@@ -111,10 +118,16 @@ public class CommandeClientService implements ICrudService<CommandeClient, Long>
 
 		System.out.println("query result : CommandeClient inserted");
 		System.out.println("execution time : " + (System.currentTimeMillis() - startTime) + "ms");
+		return cmd.getCodeCmd();
 	}
 
 	public List<MonthlyCount> getCount() {
 		return commandeClientRepo.commandeClientCountPerMonth();
+	}
+	
+	public int getIncomes() {
+		Integer incomes = commandeClientRepo.getIncomes();
+		return incomes == null ? 0 : incomes.intValue();
 	}
 
 	public boolean deleteControlled(long idCommandeClient) {

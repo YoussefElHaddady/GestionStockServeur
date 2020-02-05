@@ -38,7 +38,7 @@ public class CommandeFournisseurController extends CrudController<CommandeFourni
 
 	@PostMapping("/add_commande")
 	public ResponseEntity<?> addCmd(@RequestBody CommandeFournisseurAddingRequest commande) {
-		commandeFournisseurService.addCommande(commande);
-		return new ResponseEntity<>(new ResponseMessage(ResponseMessage.INSERT_SUCCESS), HttpStatus.ACCEPTED);
+		String code = commandeFournisseurService.addCommande(commande);
+		return new ResponseEntity<>(new ResponseMessage(code), HttpStatus.ACCEPTED);
 	}
 }

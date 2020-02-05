@@ -24,4 +24,7 @@ public interface CommandeClientRepository extends JpaRepository<CommandeClient, 
 	
 	@Query(value = "SELECT id_client, count(id_commande_client) as count FROM commande_client GROUP BY id_client", nativeQuery = true)
 	public List<MonthlyCount> commandeClientCountPerClient();
+	
+	@Query(value = "SELECT SUM(montant_paye) FROM commande_client WHERE YEAR(date_cmd) = YEAR(NOW()) AND MONTH(date_cmd) = MONTH(NOW())", nativeQuery = true)
+	public Integer getIncomes();
 }

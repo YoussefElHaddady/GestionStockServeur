@@ -11,14 +11,13 @@ import ma.tc.projects.entity.Fournisseur;
 import ma.tc.projects.repository.FournisseurRepository;
 import ma.tc.projects.service.ICrudService;
 
-
 @Service
 @Primary
 public class FournisseurService implements ICrudService<Fournisseur, Long> {
-	
+
 	@Autowired
 	private FournisseurRepository fournisseurRepo;
-	
+
 	@Autowired
 	private CommandeFournisseurService commandeFournisseurService;
 
@@ -59,13 +58,29 @@ public class FournisseurService implements ICrudService<Fournisseur, Long> {
 	public int getCount() {
 		return fournisseurRepo.fournisseursCount();
 	}
-	
+
+	public double getCredit(Fournisseur fournisseur) {
+		Fournisseur fourn = fournisseurRepo.findById(fournisseur.getIdFournisseur()).orElseThrow(
+				() -> new RuntimeException("Fail! -> Cause: Fournisseur not find FournisseurService.getCredit"));
+
+		return fourn.getCredit();
+	}
+
+	// le montant peut etre negati ou positif
+	public void addCredit(Fournisseur fournisseur, double montant) {
+		Fournisseur fourn = fournisseurRepo.findById(fournisseur.getIdFournisseur()).orElseThrow(
+				() -> new RuntimeException("Fail! -> Cause: Fournisseur not find FournisseurService.getCredit"));
+
+		fourn.setCredit(fourn.getCredit() + montant);
+		fournisseurRepo.save(fourn);
+	}
+
 	public boolean deleteControlled(long id_fournisseur, String decision) {
 		Fournisseur fournisseur = fournisseurRepo.findById(id_fournisseur).orElse(null);
 
 		if (fournisseur == null)
 			return false;
-		
+
 		if ("غير معروف".equals(fournisseur.getName()))
 			return false;
 
@@ -88,7 +103,7 @@ public class FournisseurService implements ICrudService<Fournisseur, Long> {
 		fournisseurRepo.delete(fournisseur);
 		return true;
 	}
-	
+
 	public boolean moveCmdsToUnknown(List<CommandeFournisseur> cmds) {
 		Fournisseur unknown = fournisseurRepo.findByName("غير معروف").orElse(null);
 

@@ -19,5 +19,8 @@ public interface ChargeRepository extends JpaRepository<Charge, Long> {
 	@Modifying
 	@Query(value = "DELETE FROM charges WHERE id_type_de_charge = :idTypeCharge", nativeQuery = true)
 	public void deleteByTypeDeCharge(@Param("idTypeCharge") long idTypeCharge);
+	
+	@Query(value = "SELECT SUM(montant) FROM charges WHERE etat = 'PAYE' AND YEAR(date_charge) = YEAR(NOW()) AND MONTH(date_charge) = MONTH(NOW()) ", nativeQuery = true)
+	public Integer getChargesOutcomes();
 
 }
